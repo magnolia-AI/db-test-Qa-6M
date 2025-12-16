@@ -1,28 +1,41 @@
-'use client'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { useToast } from "@/hooks/use-toast"
+import { getTodos } from '@/app/actions/todos'
+import { AddTodoForm } from '@/components/add-todo-form'
+import { TodoItem } from '@/components/todo-item'
 
-{/* 
-  TEMPLATE PAGE: Home
-  This is a template home page.
-  Replace all content with content that suits the users request.
-*/}
-export default function Home() {
-  const { toast } = useToast()
+export const dynamic = 'force-dynamic'
+
+export default async function Home() {
+  const todos = await getTodos()
+
   return (
-    <div className="min-h-full">
-
-      <section className="container mx-auto px-4 pt-24 pb-20">
-        <div className="max-w-[800px] mx-auto text-center">
-          <h1 className="text-5xl font-bold tracking-tight lg:text-6xl">
-            Template Starter
-          </h1>
-          <p className="mt-6 text-xl text-muted-foreground max-w-[600px] mx-auto">
-            This is a customizable template. Replace all content with your own using the chat interface.
+    <main className="min-h-screen w-full bg-background flex flex-col items-center pt-20 pb-10 px-4">
+      <div className="w-full max-w-lg space-y-6">
+        <div className="space-y-2 text-center">
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Todos</h1>
+          <p className="text-muted-foreground">
+            Shared database-backed task list.
           </p>
         </div>
-      </section>
-    </div>
+
+        <div className="bg-card border rounded-xl shadow-sm p-6 space-y-6">
+          <AddTodoForm />
+          
+          <div className="space-y-3">
+            {todos.length === 0 ? (
+              <div className="text-center py-12 border-2 border-dashed rounded-lg border-muted">
+                <p className="text-muted-foreground text-sm">
+                  No tasks yet. Add one to get started.
+                </p>
+              </div>
+            ) : (
+              todos.map((todo) => (
+                <TodoItem key={todo.id} todo={todo} />
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </main>
   )
 }
+
