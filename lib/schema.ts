@@ -1,12 +1,9 @@
 import { pgTable, serial, text, boolean, timestamp } from 'drizzle-orm/pg-core';
 
-export const todos = pgTable('todos', {
+// Keeping a simple schema for future use, but todos are removed from the app logic
+export const logs = pgTable('logs', {
   id: serial('id').primaryKey(),
-  text: text('text').notNull(),
-  completed: boolean('completed').default(false).notNull(),
+  message: text('message').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
-
-export type Todo = typeof todos.$inferSelect;
-export type NewTodo = typeof todos.$inferInsert;
 
