@@ -1,68 +1,71 @@
-import { getEnvVars } from '@/app/actions/envs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
+import { getLogs } from '@/app/actions/logs';
+import LogConsole from '@/components/log-console';
+import { ShieldAlert, Info, AlertTriangle, Terminal as TerminalIcon } from 'lucide-react';
+import { format } from 'date-fns';
 
-export default async function EnvPage() {
-  const result = await getEnvVars();
-
-  if (result.success === false) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-destructive font-medium">{result.error}</p>
-      </div>
-    );
+const SeverityIcon = ({ severity }: { severity: string }) => {
+  switch (severity) {
+    case 'critical': return <ShieldAlert className="text-red-500" size={16} />;
+    case 'warning': return <AlertTriangle className="text-yellow-500" size={16} />;
+    case 'info': return <Info className="text-blue-500" size={16} />;
+    default: return <TerminalIcon className="text-zinc-500" size={16} />;
   }
+};
 
-  const envs = result.data;
-  const envKeys = Object.keys(envs).sort();
+export default async function Home() {
+  const result = await getLogs();
+  const logs = result.success ? result.data : [];
 
   return (
-    <div className="container mx-auto py-10 px-4 space-y-8">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">Environment Variables</h1>
-        <p className="text-muted-foreground">
-          A list of all environment variables currently set in the server runtime.
-        </p>
-      </div>
+    <main className="min-h-screen bg-black text-zinc-100 p-4 md:p-10 font-mono">
+      <div className="max-w-4xl mx-auto space-y-10">
+        <header className="space-y-2 border-b border-zinc-900 pb-8">
+          <h1 className="text-4xl font-black tracking-tighter items-center flex gap-3">
+            <div className="w-3 h-3 bg-blue-600 animate-pulse rounded-full" />
+            CORE_SYSTEM_LOGS
+          </h1>
+          <p className="text-zinc-500 text-sm">ARCHIVAL_DATA_STREAM // STATUS: OPERATIONAL</p>
+        </header>
 
-      <Card className="bg-card border-border shadow-sm overflow-hidden">
-        <CardHeader>
-          <CardTitle className="text-xl">Runtime Context</CardTitle>
-          <CardDescription>
-            Showing {envKeys.length} keys found in process.env
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-md border border-border">
-            <Table>
-              <TableHeader className="bg-muted/50">
-                <TableRow>
-                  <TableHead className="w-[300px]">Variable Name</TableHead>
-                  <TableHead>Value</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {envKeys.map((key) => (
-                  <TableRow key={key} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="font-mono text-sm font-semibold selection:bg-primary selection:text-primary-foreground">
-                      {key}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs break-all text-muted-foreground whitespace-pre-wrap">
-                      {envs[key] ? (
-                        <span className="text-foreground">{envs[key]}</span>
-                      ) : (
-                        <Badge variant="outline" className="text-[10px] uppercase font-bold opacity-50">empty</Badge>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        <section className="grid grid-cols-1 gap-8">
+          <LogConsole />
+
+          <div className="space-y-4">
+            <div className="flex justify-between items-end border-b border-zinc-800 pb-2">
+              <h2 className="text-xs uppercase text-zinc-500 font-bold tracking-[0.2em]">Live Stream Data</h2>
+              <span className="text-[10px] text-zinc-700">RETENTION: 50 ENTRIES</span>
+            </div>
+
+            <div className="space-y-[1px]">
+              {logs?.length === 0 ? (
+                <div className="bg-zinc-950/50 border border-zinc-900 p-12 text-center text-zinc-600 italic">
+                  NO_LOG_DATA_DETECTED
+                </div>
+              ) : (
+                logs?.map((log) => (
+                  <div 
+                    key={log.id} 
+                    className="grid grid-cols-[100px_1fr_120px] items-center gap-4 bg-zinc-950 p-3 border border-zinc-900 hover:bg-zinc-900/50 transition-colors group"
+                  >
+                    <div className="text-[10px] text-zinc-500">
+                      {format(new Date(log.timestamp), 'HH:mm:ss:SSS')}
+                    </div>
+                    <div className="flex items-center gap-3 overflow-hidden">
+                      <SeverityIcon severity={log.severity} />
+                      <span className="font-bold text-zinc-300 whitespace-nowrap">[{log.event}]</span>
+                      <span className="text-zinc-500 text-sm truncate">{log.details}</span>
+                    </div>
+                    <div className="text-[10px] text-zinc-600 text-right uppercase tracking-tighter italic">
+                      ID: {log.id.toString().padStart(6, '0')}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </section>
+      </div>
+    </main>
   );
 }
 

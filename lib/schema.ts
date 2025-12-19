@@ -1,9 +1,13 @@
-import { pgTable, serial, text, boolean, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 
-// Keeping a simple schema for future use, but todos are removed from the app logic
-export const logs = pgTable('logs', {
+export const techLogs = pgTable('tech_logs', {
   id: serial('id').primaryKey(),
-  message: text('message').notNull(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  event: varchar('event', { length: 255 }).notNull(),
+  details: text('details').notNull(),
+  severity: varchar('severity', { length: 50 }).default('info').notNull(),
+  timestamp: timestamp('timestamp').defaultNow().notNull(),
 });
+
+export type TechLog = typeof techLogs.$inferSelect;
+export type NewTechLog = typeof techLogs.$inferInsert;
 
